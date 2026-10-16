@@ -1,6 +1,7 @@
 plugins {
 	java
 	antlr
+	jacoco
 	alias(libs.plugins.sonarqube)
 	alias(libs.plugins.spring.boot)
 	alias(libs.plugins.spring.dependency.management)
@@ -41,9 +42,19 @@ tasks.withType<Test> {
 	useJUnitPlatform()
 }
 
+tasks.jacocoTestReport {
+	dependsOn(tasks.test)
+	reports.xml.required.set(true)
+}
+
+tasks.named("sonar") {
+	dependsOn(tasks.jacocoTestReport)
+}
+
 sonar {
 	properties {
 		property("sonar.projectKey", "EdwardLim1994_Clever")
+		property("sonar.coverage.jacoco.xmlReportPaths", layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml").get().asFile.absolutePath)
 		property("sonar.qualitygate.wait", "true")
 		providers.environmentVariable("SONAR_ORGANIZATION").orNull
 			?.takeIf { it.isNotBlank() }
