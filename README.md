@@ -1,5 +1,8 @@
 # Clever
 
+[![SonarQube Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=EdwardLim1994_Clever&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=EdwardLim1994_Clever)
+[![SonarQube workflow](https://github.com/EdwardLim1994/Clever/actions/workflows/sonarqube.yml/badge.svg)](https://github.com/EdwardLim1994/Clever/actions/workflows/sonarqube.yml)
+
 Clever is a Java-native, server-driven UI framework for Spring Boot. The goal is to let developers write Java and HTML in `.clever` template files, compile those files into Java classes, and render HTML without a separate JavaScript UI framework.
 
 > **Status:** Early project setup. The repository currently contains a Spring Boot application and ANTLR build dependencies. The Clever template grammar, compiler, runtime, and Spring MVC integration are planned work and are not implemented yet.
@@ -59,6 +62,17 @@ The planned compiler will live independently from the Spring Boot adapter where 
 - Gradle Wrapper (included)
 
 The current build uses Spring Boot 4.1.1 and ANTLR 4.13.2. ANTLR grammars will use Gradle's standard `src/main/antlr` source directory; generated parser sources are wired into Java compilation by the Gradle ANTLR plugin.
+
+## SonarQube Cloud
+
+The `SonarQube` GitHub Actions workflow builds the project, uploads an analysis to SonarQube Cloud, and waits for the Quality Gate result. Create/import this repository in SonarQube Cloud with project key `EdwardLim1994_Clever`, then configure:
+
+- Repository secret `SONAR_TOKEN` with Execute Analysis permission.
+- Repository variable `SONAR_ORGANIZATION` with the SonarQube Cloud organization key.
+
+The workflow runs on pushes, pull requests from the same repository, and manual dispatch. Pull requests from forks skip analysis because GitHub does not expose repository secrets to them. The badges above show the latest Quality Gate and workflow run; they populate after the first successful analysis.
+
+Make the SonarQube Cloud project public if the Quality Gate badge should be visible to readers without SonarQube access.
 
 ## Build and run
 

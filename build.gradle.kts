@@ -1,6 +1,7 @@
 plugins {
 	java
 	antlr
+	id("org.sonarqube") version "7.2.3.7755"
 	id("org.springframework.boot") version "4.1.1"
 	id("io.spring.dependency-management") version "1.1.7"
 }
@@ -32,4 +33,14 @@ dependencies {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+sonar {
+	properties {
+		property("sonar.projectKey", "EdwardLim1994_Clever")
+		property("sonar.qualitygate.wait", "true")
+		providers.environmentVariable("SONAR_ORGANIZATION").orNull
+			?.takeIf { it.isNotBlank() }
+			?.let { property("sonar.organization", it) }
+	}
 }

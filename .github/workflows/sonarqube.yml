@@ -1,0 +1,40 @@
+name: SonarQube
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Build and analyze
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: gradle
+
+      - name: Check SonarQube credentials
+        run: |
+          test -n "$SONAR_TOKEN" || { echo "Missing SONAR_TOKEN secret"; exit 1; }
+          test -n "$SONAR_ORGANIZATION" || { echo "Missing SONAR_ORGANIZATION repository variable"; exit 1; }
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
+
+      - name: Build and analyze
+        run: ./gradlew --no-daemon build sonar
+        env:
+          SONAR_HOST_URL: https://sonarcloud.io
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
