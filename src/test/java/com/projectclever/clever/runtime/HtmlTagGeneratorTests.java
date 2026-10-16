@@ -16,6 +16,13 @@ class HtmlTagGeneratorTests {
 	}
 
 	@Test
+	void elementSkipsNullAttributeValues() {
+		Element element = HtmlTagGenerator.element("a", java.util.Collections.singletonMap("href", null));
+
+		assertEquals("<a></a>", HtmlTagGenerator.render(element));
+	}
+
+	@Test
 	void appendTextEscapesHtmlContent() {
 		Element element = HtmlTagGenerator.element("div", Map.of());
 

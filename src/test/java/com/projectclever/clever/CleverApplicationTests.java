@@ -11,6 +11,9 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -43,5 +46,13 @@ class CleverApplicationTests {
 
 		assertEquals(200, response.statusCode());
 		assertTrue(response.body().contains("<h1>Hello world!</h1>"));
+	}
+
+	@Test
+	void mainStartsSpringApplication() {
+		try (MockedStatic<SpringApplication> spring = Mockito.mockStatic(SpringApplication.class)) {
+			CleverApplication.main(new String[0]);
+			spring.verify(() -> SpringApplication.run(CleverApplication.class, new String[0]));
+		}
 	}
 }
