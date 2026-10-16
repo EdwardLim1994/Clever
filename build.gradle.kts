@@ -1,9 +1,9 @@
 plugins {
 	java
 	antlr
-	id("org.sonarqube") version "7.2.3.7755"
-	id("org.springframework.boot") version "4.1.1"
-	id("io.spring.dependency-management") version "1.1.7"
+	alias(libs.plugins.sonarqube)
+	alias(libs.plugins.spring.boot)
+	alias(libs.plugins.spring.dependency.management)
 }
 
 group = "com.projectclever"
@@ -19,9 +19,13 @@ repositories {
 	mavenCentral()
 }
 
+dependencyLocking {
+	lockAllConfigurations()
+}
+
 dependencies {
-	antlr("org.antlr:antlr4:4.13.2")
-	implementation("org.antlr:antlr4-runtime:4.13.2")
+	antlr(libs.antlr)
+	implementation(libs.antlr.runtime)
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
