@@ -534,6 +534,8 @@ This area requires a formal scope-resolution specification.
 
 The framework should support Java expressions directly within HTML.
 
+The initial compiler supports `@(JavaExpression)` in HTML text nodes. Attribute expressions and raw HTML expressions are not supported in this slice; the other examples below describe future language direction.
+
 Illustrative examples:
 
 ```html

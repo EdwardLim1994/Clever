@@ -6,15 +6,16 @@
 
 ## 2. Build the compiler foundation
 
-- [ ] 2.1 Add the initial ANTLR grammar for `.clever` declarations and primary blocks.
-- [ ] 2.2 Implement source diagnostics that retain original file and location information.
+- [x] 2.1 Add the initial ANTLR grammar for `.clever` declarations and primary blocks.
+- [x] 2.2 Implement source diagnostics that retain original file and location information.
 - [ ] 2.3 Build semantic validation for template types and typed `@Inputs(...)` declarations.
-- [ ] 2.4 Generate Java classes and connect generated sources to Gradle compilation.
+- [x] 2.4 Generate Java classes and connect generated sources to Gradle compilation.
 
 ## 3. Implement template rendering and composition
 
-- [ ] 3.1 Generate HTML rendering code for static markup and Java expressions.
-- [ ] 3.2 Escape dynamic text by default and verify escaping behavior.
+- [x] 3.1 Generate HTML rendering code for static markup and Java expressions.
+- [x] 3.2 Escape dynamic text by default and verify escaping behavior.
+- [x] 3.7 Add a named-input facade for rendering compiled template classes.
 - [ ] 3.3 Add conditionals and iteration after their grammar is finalized.
 - [ ] 3.4 Add typed component invocation and argument validation.
 - [ ] 3.5 Add layouts, named slots, nested composition, and slot validation.

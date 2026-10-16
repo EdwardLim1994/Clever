@@ -41,7 +41,7 @@ The language SHALL provide an `@Inputs(Type name, ...)` directive to declare str
 The compiler SHALL generate a Java class whose name matches the template's declared class name. Generated classes SHALL contain rendering code for the template content and SHALL be compiled through the project's Java build.
 
 #### Scenario: Build compiles a valid template
-- **WHEN** a valid `.clever` template is included in a project build
+- **WHEN** a valid `.clever` template is passed to the `compileCleverJava` Gradle task with an output package and source path
 - **THEN** the build generates and compiles its corresponding Java class
 
 ### Requirement: Source diagnostics
@@ -50,3 +50,5 @@ The compiler SHALL report template syntax and validation errors against the orig
 #### Scenario: Invalid template syntax
 - **WHEN** the parser encounters invalid template syntax
 - **THEN** the diagnostic identifies the source file and location of the error
+
+The initial compiler SHALL accept Java expressions in template text using `@(JavaExpression)` and SHALL report source locations for malformed template syntax.
