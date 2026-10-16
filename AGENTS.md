@@ -917,3 +917,7 @@ The framework should emphasize:
 - Seamless Spring Boot integration.
 
 The immediate next architectural area to explore is the formal semantics of public component-variable exports, including name collisions, rendering order, conditional components, and interaction with the generated Java object model.
+
+## Development Rule
+
+- Every new production class and function must have unit test coverage in the same change.

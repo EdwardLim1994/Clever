@@ -5,7 +5,7 @@
 
 Clever is a Java-native, server-driven UI framework for Spring Boot. The goal is to let developers write Java and HTML in `.clever` template files, compile those files into Java classes, and render HTML without a separate JavaScript UI framework.
 
-> **Status:** Early project setup. The repository currently contains a Spring Boot application and ANTLR build dependencies. The Clever template grammar, compiler, runtime, and Spring MVC integration are planned work and are not implemented yet.
+> **Status:** Early project setup. The repository currently contains a Spring Boot application, ANTLR build dependencies, and a small HTML tag-generation helper. The Clever template grammar, compiler, and Spring MVC integration are planned work and are not implemented yet.
 
 ## Project direction
 

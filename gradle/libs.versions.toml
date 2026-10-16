@@ -1,5 +1,7 @@
 [versions]
 antlr = "4.13.2"
+commons-text = "1.15.0"
+jsoup = "1.23.2"
 sonarqube = "7.2.3.7755"
 spring-boot = "4.1.1"
 spring-dependency-management = "1.1.7"
@@ -7,6 +9,8 @@ spring-dependency-management = "1.1.7"
 [libraries]
 antlr = { module = "org.antlr:antlr4", version.ref = "antlr" }
 antlr-runtime = { module = "org.antlr:antlr4-runtime", version.ref = "antlr" }
+commons-text = { module = "org.apache.commons:commons-text", version.ref = "commons-text" }
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 
 [plugins]
 sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }

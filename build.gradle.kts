@@ -26,6 +26,8 @@ dependencyLocking {
 dependencies {
 	antlr(libs.antlr)
 	implementation(libs.antlr.runtime)
+	implementation(libs.commons.text)
+	implementation(libs.jsoup)
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
