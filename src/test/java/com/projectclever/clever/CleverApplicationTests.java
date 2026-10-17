@@ -22,10 +22,6 @@ class CleverApplicationTests {
 	private int port;
 
 	@Test
-	void contextLoads() {
-	}
-
-	@Test
 	void cleverEndpointRendersTemplateWithEscapedRequestParameter() throws Exception {
 		String query = URLEncoder.encode("Ada <script>", StandardCharsets.UTF_8);
 		HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/?param=" + query))
