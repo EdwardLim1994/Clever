@@ -1,0 +1,7 @@
+@Layout SiteLayout
+@Inputs(String title)
+
+@Code {
+}
+
+@Template {<div class="site-layout"><header>@(title)</header><main>@Slot("content")</main></div>}

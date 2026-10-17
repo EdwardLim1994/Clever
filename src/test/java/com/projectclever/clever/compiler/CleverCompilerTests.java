@@ -89,6 +89,42 @@ class CleverCompilerTests {
 	}
 
 	@Test
+	void componentAndLayoutExampleTemplatesCompileAndRenderTogether() throws Exception {
+		Path examples = Path.of("src/main/clever/examples");
+		Path javaRoot = tempDir.resolve("example-generated");
+		Path classes = tempDir.resolve("example-classes");
+		List<Path> javaFiles = new ArrayList<>();
+		for (String name : List.of("UserCard", "SiteLayout", "DashboardPage")) {
+			Path template = examples.resolve(name + ".clever");
+			javaFiles.add(writeGenerated("com.projectclever.clever.examples", name,
+					compiler.compile(template, "com.projectclever.clever.examples"), javaRoot));
+		}
+		Files.createDirectories(classes);
+		List<Class<?>> types = List.of(CleverCompiler.class, HtmlTagGenerator.class, Jsoup.class, Element.class,
+				StringEscapeUtils.class, org.apache.commons.lang3.StringUtils.class);
+		List<String> classpathEntries = new ArrayList<>();
+		for (Class<?> type : types) {
+			String entry = Path.of(type.getProtectionDomain().getCodeSource().getLocation().toURI()).toString();
+			if (!classpathEntries.contains(entry)) {
+				classpathEntries.add(entry);
+			}
+		}
+		List<String> args = new ArrayList<>(List.of("-classpath",
+				String.join(System.getProperty("path.separator"), classpathEntries), "-processorpath",
+				String.join(System.getProperty("path.separator"), classpathEntries), "-d", classes.toString()));
+		javaFiles.forEach(file -> args.add(file.toString()));
+		assertEquals(0, ToolProvider.getSystemJavaCompiler().run(null, null, null, args.toArray(String[]::new)));
+
+		try (URLClassLoader loader = new URLClassLoader(new URL[] {classes.toUri().toURL()}, getClass().getClassLoader())) {
+			Object page = loader.loadClass("com.projectclever.clever.examples.DashboardPage")
+					.getConstructor().newInstance();
+		assertEquals("<div class=\"site-layout\"><header>Dashboard</header><main><h1>Welcome</h1>"
+					+ "<article class=\"user-card\"><h2>Ada Lovelace</h2></article></main></div>",
+					loader.loadClass("com.projectclever.clever.examples.DashboardPage").getMethod("render").invoke(page));
+		}
+	}
+
+	@Test
 	void compileRejectsPageInputsAndDuplicateInputNames() throws IOException {
 		Path page = writeTemplate("PageInputs.clever", "@Page Page\n@Inputs(String name)\n@Code {}\n@Template {}\n");
 		Path duplicate = writeTemplate("DuplicateInputs.clever",

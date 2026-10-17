@@ -1,0 +1,7 @@
+@Component UserCard
+@Inputs(String name)
+
+@Code {
+}
+
+@Template {<article class="user-card"><h2>@(name)</h2></article>}
