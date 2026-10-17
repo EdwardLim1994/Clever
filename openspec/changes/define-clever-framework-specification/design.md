@@ -25,11 +25,12 @@ The intended framework compiles Java-and-HTML template files into Java classes. 
 
 1. **Use ANTLR for the template grammar.** ANTLR is already configured in Gradle and supports a structured grammar for mixed Java and markup. Regex-only parsing is unsuitable for nested Java expressions, strings, comments, and blocks. The exact grammar and parser stages remain implementation work.
 2. **Compile templates to Java classes.** Generated Java preserves Java typing and lets the normal Java compiler validate generated output. Runtime template interpretation is not the intended rendering path.
-3. **Treat `.clever` as the template extension.** Gradle's ANTLR plugin reads production grammars from `src/main/antlr`; `.clever` discovery and compilation will be added to the Clever compiler workflow.
+3. **Treat `.clever` as the template extension.** Gradle's ANTLR plugin reads compiler grammars from `src/cleverCompiler/antlr`; `.clever` discovery and compilation will be added to the Clever compiler workflow.
 4. **Separate language/compiler concerns from Spring Boot adapters.** The parser and source generator should be usable without Spring MVC. Spring integration owns request handling, template lookup, and HTTP responses.
 5. **Use an output writer and escape dynamic text by default.** Static markup is written as markup; expression output is escaped. A raw/trusted HTML escape hatch is not part of the initial confirmed design.
 6. **Separate template inputs from Java code blocks.** `@Inputs(Type name, ...)` declares a component or layout's typed inputs; the compiler generates constructor parameters and fields from that declaration. `@Code { ... }` contains Java members, while `@Template { ... }` contains template content. This keeps the public component API explicit and leaves custom Java constructors available inside `@Code` if needed.
 7. **Keep the interaction layer server-driven.** An action request invokes permitted server-side behavior and returns rendered HTML for a targeted browser update. The concrete action registration and DOM update protocol remain open.
+8. **Use `@(JavaExpression)` for the first interpolation slice.** The compiler recognizes this form in HTML text nodes and HTML-escapes its result. Attribute expressions, control flow, component calls, and layouts remain outside this slice.
 
 ## Risks / Trade-offs
 

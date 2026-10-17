@@ -2,7 +2,6 @@ package com.projectclever.clever.runtime;
 
 import java.util.Map;
 import java.util.Objects;
-import org.apache.commons.text.StringEscapeUtils;
 import org.jsoup.nodes.Element;
 import org.jsoup.parser.Tag;
 
@@ -22,7 +21,7 @@ public final class HtmlTagGenerator {
 	}
 
 	public static void appendText(Element element, Object value) {
-		element.append(StringEscapeUtils.escapeHtml4(Objects.toString(value, "")));
+		element.appendText(Objects.toString(value, ""));
 	}
 
 	public static String render(Element element) {

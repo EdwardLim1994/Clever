@@ -5,7 +5,7 @@
 
 Clever is a Java-native, server-driven UI framework for Spring Boot. The goal is to let developers write Java and HTML in `.clever` template files, compile those files into Java classes, and render HTML without a separate JavaScript UI framework.
 
-> **Status:** Early project setup. The repository currently contains a Spring Boot application, ANTLR build dependencies, and a small HTML tag-generation helper. The Clever template grammar, compiler, and Spring MVC integration are planned work and are not implemented yet.
+> **Status:** Early implementation. A compiler generates Java for one `.clever` file using `@Code` and `@Template`. The sample page is compiled at build time and rendered by a REST endpoint; components and layouts are not implemented yet.
 
 ## Project direction
 
@@ -61,7 +61,7 @@ The planned compiler will live independently from the Spring Boot adapter where 
 - Java 25
 - Gradle Wrapper (included)
 
-The current build uses Spring Boot 4.1.1 and ANTLR 4.13.2. ANTLR grammars will use Gradle's standard `src/main/antlr` source directory; generated parser sources are wired into Java compilation by the Gradle ANTLR plugin.
+The current build uses Spring Boot 4.1.1 and ANTLR 4.13.2. Compiler grammars live under `src/cleverCompiler/antlr`; Gradle generates parser sources before compiling the compiler.
 
 ## SonarQube Cloud
 
@@ -83,6 +83,8 @@ Windows PowerShell:
 .\gradlew.bat bootRun
 ```
 
+Open `http://localhost:8080/` to render the sample `.clever` page with the default name `world`, or pass `?param=name`. The `param` value is HTML-escaped before it is returned.
+
 macOS or Linux:
 
 ```bash
@@ -90,17 +92,37 @@ macOS or Linux:
 ./gradlew bootRun
 ```
 
-Generate parser sources after adding grammar files under `src/main/antlr`:
+Generate parser sources after adding grammar files under `src/cleverCompiler/antlr`:
 
 ```bash
-./gradlew generateGrammarSource
+./gradlew generateCleverCompilerGrammarSource
 ```
 
-On Windows, use `.\gradlew.bat generateGrammarSource` from PowerShell.
+On Windows, use `.\gradlew.bat generateCleverCompilerGrammarSource` from PowerShell.
+
+Generate and compile the sample template with the application. By default, `bootRun`, `test`, and `bootJar` compile `src/main/clever/HelloPage.clever` into the application.
+
+```powershell
+.\gradlew.bat compileCleverJava
+```
+
+The `cleverSource`, `cleverPackage`, and `cleverOutput` Gradle properties can change the generated template. Keep the generated package and class name aligned with Java imports such as `ExampleController`'s `HelloPage` import.
+
+Template text expressions use `@(JavaExpression)` and are HTML-escaped by default. Expressions in attributes are not supported yet.
+
+`CleverHtml` sanitizes the final response with a jsoup allowlist. Scripts, event handlers, unsafe URLs, and unsupported tags or attributes are removed. Keep template markup within the allowed HTML elements and attributes; expand the allowlist deliberately when adding new template features.
+
+Render a compiled template by calling its generated constructor:
+
+```java
+CleverHtml html = CleverRenderer.render(new HelloPage("Julian Bashir"));
+```
+
+The sample endpoint uses the same constructor-based API. The class and map overloads remain available for templates selected at runtime.
 
 ## Roadmap
 
-1. Define the template grammar and diagnostics.
+1. Refine the initial template grammar and diagnostics.
 2. Parse `.clever` files and generate Java classes.
 3. Add HTML rendering, expressions, conditionals, and loops.
 4. Add typed components, layouts, slots, and scope validation.

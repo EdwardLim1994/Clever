@@ -1,0 +1,6 @@
+{
+  "exclude": [
+    "gradle/verification-metadata.xml",
+    "src/main/resources/application.properties"
+  ]
+}

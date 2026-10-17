@@ -32,6 +32,13 @@ class HtmlTagGeneratorTests {
 	}
 
 	@Test
+	void appendTextEscapesExistingEntitiesWithoutReparsing() {
+		Element element = HtmlTagGenerator.element("p", Map.of());
+		HtmlTagGenerator.appendText(element, "&lt;script&gt; & \"hi\"");
+		assertEquals("<p>&amp;lt;script&amp;gt; &amp; \"hi\"</p>", HtmlTagGenerator.render(element));
+	}
+
+	@Test
 	void appendTextTreatsNullAsEmpty() {
 		Element element = HtmlTagGenerator.element("span", Map.of());
 
