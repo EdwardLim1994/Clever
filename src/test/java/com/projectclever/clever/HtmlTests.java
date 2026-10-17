@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.mock.http.MockHttpInputMessage;
 import org.springframework.mock.http.MockHttpOutputMessage;
 
 class HtmlTests {
@@ -39,5 +41,14 @@ class HtmlTests {
 
 		assertEquals("<p>Hello</p>", output.getBodyAsString());
 		assertTrue(MediaType.TEXT_HTML.isCompatibleWith(output.getHeaders().getContentType()));
+	}
+
+	@Test
+	void converterRejectsReadingHtml() {
+		HtmlHttpMessageConverter converter = new HtmlHttpMessageConverter();
+		MockHttpInputMessage input = new MockHttpInputMessage(new byte[0]);
+
+		assertThrows(HttpMessageNotReadableException.class,
+				() -> converter.readInternal(CleverHtml.class, input));
 	}
 }

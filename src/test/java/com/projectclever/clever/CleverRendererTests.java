@@ -32,8 +32,35 @@ class CleverRendererTests {
 
 	@Test
 	void renderRejectsInputsThatDoNotMatchConstructor() {
+		Map<String, String> inputs = Map.of("wrong", "name");
 		assertThrows(IllegalArgumentException.class,
-				() -> CleverRenderer.render(TemplateFixture.class, Map.of("wrong", "name")));
+				() -> CleverRenderer.render(TemplateFixture.class, inputs));
+	}
+
+	@Test
+	void renderRejectsMissingTemplateOrInputs() {
+		Map<String, Object> emptyInputs = Map.of();
+		assertThrows(IllegalArgumentException.class, () -> CleverRenderer.render((Class<?>) null, emptyInputs));
+		assertThrows(IllegalArgumentException.class, () -> CleverRenderer.render(TemplateFixture.class, null));
+		assertThrows(IllegalArgumentException.class, () -> CleverRenderer.render("", emptyInputs));
+	}
+
+	@Test
+	void renderRejectsInvalidRenderMethods() {
+		Object missing = new Object();
+		WrongReturnFixture wrongReturn = new WrongReturnFixture();
+		assertThrows(IllegalStateException.class, () -> CleverRenderer.render(missing));
+		assertThrows(IllegalArgumentException.class, () -> CleverRenderer.render(wrongReturn));
+	}
+
+	@Test
+	void renderPreservesInvocationCauses() {
+		ThrowingFixture throwing = new ThrowingFixture();
+		Map<String, String> inputs = Map.of("name", "Ada");
+		assertEquals("render failed", assertThrows(IllegalStateException.class,
+				() -> CleverRenderer.render(throwing)).getCause().getMessage());
+		assertEquals("construction failed", assertThrows(IllegalStateException.class,
+				() -> CleverRenderer.render(ConstructorFailureFixture.class, inputs)).getCause().getMessage());
 	}
 
 	@Test
@@ -53,6 +80,24 @@ class CleverRendererTests {
 
 		public String render() {
 			return name + " (" + age + ")";
+		}
+	}
+
+	public static class WrongReturnFixture {
+		public int render() {
+			return 1;
+		}
+	}
+
+	public static class ThrowingFixture {
+		public String render() {
+			throw new IllegalArgumentException("render failed");
+		}
+	}
+
+	public static class ConstructorFailureFixture {
+		public ConstructorFailureFixture(String name) {
+			throw new IllegalArgumentException("construction failed");
 		}
 	}
 }

@@ -43,9 +43,10 @@ class BlockBuilderTests {
 		String source = "@Page Example\n@Code {}\n@Template { <p>@()</p> }";
 		CleverTemplateParser.TemplateBodyContext body = new CleverTemplateParser(tokens(source))
 				.templateFile().templateBlock().templateBody();
+		TemplateBlockBuilder builder = new TemplateBlockBuilder();
 
 		IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-				() -> new TemplateBlockBuilder().build(source, body, "Example.clever"));
+				() -> builder.build(source, body, "Example.clever"));
 
 		assertTrue(error.getMessage().contains("Example.clever:3:"));
 		assertTrue(error.getMessage().contains("template expression cannot be empty"));
