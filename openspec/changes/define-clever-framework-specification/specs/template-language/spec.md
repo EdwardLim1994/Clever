@@ -25,6 +25,8 @@ The language SHALL provide an `@Code { ... }` block for Java declarations and an
 ### Requirement: Typed template inputs
 The language SHALL provide an `@Inputs(Type name, ...)` directive to declare strongly typed values supplied when a component or layout is invoked. The compiler SHALL generate corresponding constructor parameters and fields and make the values available in the template's Java code and markup.
 
+`@Inputs(...)` SHALL contain at least one parameter and SHALL be declared only by a Component or Layout. Generated input fields SHALL be private and final. The compiler SHALL reject duplicate or invalid parameter names and SHALL validate component and layout argument counts. Java compilation SHALL validate argument types.
+
 #### Scenario: Inputs become constructor values
 - **WHEN** a component declares `@Inputs(String name, int age)`
 - **THEN** its generated class stores those typed values and exposes a constructor accepting them in declaration order

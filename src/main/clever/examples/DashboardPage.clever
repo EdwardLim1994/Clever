@@ -1,0 +1,10 @@
+@Page DashboardPage
+
+@Code {
+	import com.projectclever.clever.examples.SiteLayout;
+	import com.projectclever.clever.examples.UserCard;
+
+	private String userName = "Ada Lovelace";
+}
+
+@Template {@Layout(SiteLayout.class, "Dashboard"){@Slot("content"){<h1>Welcome</h1>@Component(UserCard.class, userName)}}}

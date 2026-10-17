@@ -9,7 +9,7 @@ The language SHALL allow a template to invoke a component by its generated Java 
 
 #### Scenario: Invalid component arguments
 - **WHEN** a component invocation has the wrong number or incompatible types of arguments
-- **THEN** the compiler reports a validation diagnostic at the invocation
+- **THEN** the compiler reports an input-count diagnostic at the invocation or the Java compiler rejects incompatible generated constructor arguments
 
 ### Requirement: Layout slots
 The language SHALL support layouts with named slot insertion points and invocations that provide named slot content. Slot content SHALL support template content, Java expressions, and component invocations.
@@ -21,6 +21,14 @@ The language SHALL support layouts with named slot insertion points and invocati
 #### Scenario: Slot reference validation
 - **WHEN** a layout invocation refers to a slot name
 - **THEN** the compiler validates the slot reference against the layout's declared slots
+
+#### Scenario: Unassigned slot fallback
+- **WHEN** a layout invocation omits a slot assignment
+- **THEN** the slot renders empty content
+
+#### Scenario: Duplicate or unknown slot assignment
+- **WHEN** a layout invocation assigns the same slot more than once or names a slot absent from the layout
+- **THEN** the compiler reports a diagnostic at the invalid assignment
 
 ### Requirement: Component field visibility
 Private component fields SHALL remain internal to the declaring component. Public component fields SHALL be eligible for access by the immediate parent template after that component is invoked, without requiring a separate reference annotation.
@@ -39,3 +47,15 @@ Component field exports SHALL be limited to the immediate parent template and SH
 #### Scenario: Nested component export
 - **WHEN** a component invokes a child that has public fields
 - **THEN** those fields are available to the invoking component, but are not automatically re-exported to the invoking component's parent
+
+#### Scenario: Export name collision
+- **WHEN** two component invocations in one template scope export a public field with the same name
+- **THEN** the compiler reports an ambiguous component export
+
+#### Scenario: Conditional component invocation
+- **WHEN** a component invocation is placed inside a conditional directive
+- **THEN** the initial composition slice does not support the invocation; conditional rendering must be specified before its exports can enter scope
+
+#### Scenario: Slot content export boundary
+- **WHEN** a component inside assigned slot content exports a public field
+- **THEN** that field is available only within that slot content and does not enter the invoking template's outer scope

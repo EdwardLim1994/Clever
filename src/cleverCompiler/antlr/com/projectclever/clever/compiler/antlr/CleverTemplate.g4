@@ -5,13 +5,25 @@ package com.projectclever.clever.compiler.antlr;
 }
 
 templateFile
-	: templateDeclaration REQUIRED_ARGS_CONSTRUCTOR? codeBlock templateBlock EOF
+	: templateDeclaration inputsDirective? REQUIRED_ARGS_CONSTRUCTOR? codeBlock templateBlock EOF
 	;
 
 templateDeclaration
 	: PAGE IDENTIFIER
 	| COMPONENT IDENTIFIER
 	| LAYOUT IDENTIFIER
+	;
+
+inputsDirective
+	: INPUTS LPAREN inputParameter (COMMA inputParameter)* RPAREN
+	;
+
+inputParameter
+	: javaType IDENTIFIER
+	;
+
+javaType
+	: IDENTIFIER (DOT IDENTIFIER)* (LT javaType (COMMA javaType)* GT)? (LBRACK RBRACK)*
 	;
 
 codeBlock
@@ -45,7 +57,10 @@ templateBody
 	;
 
 templateContent
-	: nestedTemplateBlock
+	: componentInvocation
+	| layoutInvocation
+	| slotDeclaration
+	| nestedTemplateBlock
 	| interpolation
 	| QUOTED
 	| TEXT_BLOCK
@@ -53,6 +68,35 @@ templateContent
 	| BLOCK_COMMENT
 	| HTML_COMMENT
 	| ~(LBRACE | RBRACE)
+	;
+
+componentInvocation
+	: COMPONENT LPAREN qualifiedName DOT CLASS (COMMA javaArgumentList)? RPAREN
+	;
+
+layoutInvocation
+	: LAYOUT LPAREN qualifiedName DOT CLASS (COMMA javaArgumentList)? RPAREN
+	  LBRACE slotAssignment* RBRACE
+	;
+
+slotAssignment
+	: SLOT LPAREN QUOTED RPAREN LBRACE templateContent* RBRACE
+	;
+
+slotDeclaration
+	: SLOT LPAREN QUOTED RPAREN
+	;
+
+qualifiedName
+	: IDENTIFIER (DOT IDENTIFIER)*
+	;
+
+javaArgumentList
+	: javaExpression (COMMA javaExpression)*
+	;
+
+javaExpression
+	: expressionContent+
 	;
 
 nestedTemplateBlock
@@ -70,7 +114,7 @@ expressionContent
 	| LINE_COMMENT
 	| BLOCK_COMMENT
 	| HTML_COMMENT
-	| ~(LPAREN | RPAREN)
+	| ~(LPAREN | RPAREN | COMMA)
 	;
 
 parenGroup
@@ -80,6 +124,8 @@ parenGroup
 PAGE: '@Page';
 COMPONENT: '@Component';
 LAYOUT: '@Layout';
+SLOT: '@Slot';
+INPUTS: '@Inputs';
 CODE: '@Code';
 TEMPLATE: '@Template';
 REQUIRED_ARGS_CONSTRUCTOR: '@RequiredArgsConstructor';
@@ -89,6 +135,13 @@ RBRACE: '}';
 LPAREN: '(';
 RPAREN: ')';
 IMPORT: 'import';
+CLASS: 'class';
+DOT: '.';
+COMMA: ',';
+LT: '<';
+GT: '>';
+LBRACK: '[';
+RBRACK: ']';
 SEMICOLON: ';';
 TEXT_BLOCK: '"""' .*? '"""';
 QUOTED: '"' ('\\' . | ~["\\])* '"'

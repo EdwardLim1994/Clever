@@ -31,6 +31,10 @@ The intended framework compiles Java-and-HTML template files into Java classes. 
 6. **Separate template inputs from Java code blocks.** `@Inputs(Type name, ...)` declares a component or layout's typed inputs; the compiler generates constructor parameters and fields from that declaration. `@Code { ... }` contains Java members, while `@Template { ... }` contains template content. This keeps the public component API explicit and leaves custom Java constructors available inside `@Code` if needed.
 7. **Keep the interaction layer server-driven.** An action request invokes permitted server-side behavior and returns rendered HTML for a targeted browser update. The concrete action registration and DOM update protocol remain open.
 8. **Use `@(JavaExpression)` for the first interpolation slice.** The compiler recognizes this form in HTML text nodes and HTML-escapes its result. Attribute expressions, control flow, component calls, and layouts remain outside this slice.
+9. **Keep composition straight-line in the initial slice.** Component invocations export public fields only after an unconditional invocation in the same template scope. Conditional component invocation is deferred until conditional rendering is specified.
+10. **Make component exports unambiguous.** Public fields from a component are visible to its immediate invoking template. If two component invocations export the same field name into that scope, compilation fails. Exports do not propagate through components or layouts.
+11. **Treat layout slots as optional insertion points.** An unassigned slot renders empty content. A layout invocation may assign each slot at most once, and each assignment must name a slot declared by the target layout. Slot content renders in the invoking template's scope; exports made inside slot content do not escape that slot.
+12. **Generate an explicit constructor for `@Inputs`.** Inputs are private final fields in declaration order and receive a matching constructor. The normal Java compiler validates component and layout argument types after Clever validates input count and slot names.
 
 ## Risks / Trade-offs
 
@@ -51,9 +55,9 @@ No existing template users or framework runtime exist, so no migration is requir
 - How are Java package names and imports represented in `.clever` files?
 - Are generated `@Inputs` fields final, and how do input defaults interact with component construction?
 - How do Spring dependency injection and user-authored Java constructors interact with generated input constructors?
-- How are public field exports named, typed, and made available after conditional invocations?
-- What is the diagnostic behavior for duplicate exports, and do exports propagate through layouts?
-- Are layout slots required, can they have fallback content, and how does nested layout composition work?
+- How should public field exports interact with conditional rendering when conditionals are added?
+- Should layouts gain non-empty fallback content for slots in a later language version?
+- How should nested layout exports behave if export propagation is explicitly added later?
 - How do pages map to routes and bind request parameters?
 - How are actions registered, authorized, protected against CSRF, and associated with a component instance or persisted state?
 - Does the browser layer use HTMX or a small Clever-owned runtime?
