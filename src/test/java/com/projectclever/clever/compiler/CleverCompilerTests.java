@@ -2,6 +2,7 @@ package com.projectclever.clever.compiler;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -11,7 +12,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.tools.ToolProvider;
 import org.apache.commons.text.StringEscapeUtils;
 import org.jsoup.Jsoup;
@@ -25,6 +28,136 @@ class CleverCompilerTests {
 	Path tempDir;
 
 	private final CleverCompiler compiler = new CleverCompiler();
+
+	@Test
+	void generatedComponentsAndLayoutsRenderTypedInputsAndNamedSlots() throws Exception {
+		Path card = writeTemplate("Card.clever", """
+				@Component Card
+				@Inputs(String name)
+				@Code { public int count = 5; private int secret = 2; }
+				@Template { <strong>@(name)-@(count)</strong> }
+				""");
+		Path layout = writeTemplate("MainLayout.clever", """
+				@Layout MainLayout
+				@Inputs(String title)
+				@Code {}
+				@Template { <main><h1>@(title)</h1><section>@Slot("content")</section></main> }
+				""");
+		Path page = writeTemplate("Dashboard.clever", """
+				@Page Dashboard
+				@Code {
+				    import com.example.Card;
+				    import com.example.MainLayout;
+				    private String name = "<Ada>";
+				    private int count = 9;
+				}
+				@Template {@Layout(MainLayout.class, "Dashboard"){@Slot("content"){<p>Welcome</p>@Component(Card.class,name)<em>@(count)</em><i>@(this.count)</i>}}}
+				""");
+		Path javaRoot = tempDir.resolve("generated");
+		Path classes = tempDir.resolve("classes");
+		List<Path> javaFiles = List.of(writeGenerated("com.example", "Card", compiler.compile(card, "com.example"), javaRoot),
+				writeGenerated("com.example", "MainLayout", compiler.compile(layout, "com.example"), javaRoot),
+				writeGenerated("com.example", "Dashboard", compiler.compile(page, "com.example"), javaRoot));
+		Files.createDirectories(classes);
+		List<Class<?>> types = List.of(CleverCompiler.class, HtmlTagGenerator.class, Jsoup.class, Element.class,
+				StringEscapeUtils.class, org.apache.commons.lang3.StringUtils.class);
+		List<String> classpathEntries = new ArrayList<>();
+		for (Class<?> type : types) {
+			String entry = Path.of(type.getProtectionDomain().getCodeSource().getLocation().toURI()).toString();
+			if (!classpathEntries.contains(entry)) {
+				classpathEntries.add(entry);
+			}
+		}
+		String classpath = String.join(System.getProperty("path.separator"), classpathEntries);
+		List<String> args = new ArrayList<>(List.of("-classpath", classpath, "-processorpath", classpath,
+				"-d", classes.toString()));
+		javaFiles.forEach(file -> args.add(file.toString()));
+		assertEquals(0, ToolProvider.getSystemJavaCompiler().run(null, null, null, args.toArray(String[]::new)));
+
+		try (URLClassLoader loader = new URLClassLoader(new URL[] {classes.toUri().toURL()}, getClass().getClassLoader())) {
+			Object dashboard = loader.loadClass("com.example.Dashboard").getConstructor().newInstance();
+			assertEquals(" <main><h1>Dashboard</h1><section><p>Welcome</p> <strong>&lt;Ada&gt;-5</strong> <em>5</em><i>9</i></section></main> ",
+					loader.loadClass("com.example.Dashboard").getMethod("render").invoke(dashboard));
+			Object emptyLayout = loader.loadClass("com.example.MainLayout").getConstructor(String.class).newInstance("Empty");
+			assertEquals(" <main><h1>Empty</h1><section></section></main> ",
+					loader.loadClass("com.example.MainLayout").getMethod("render").invoke(emptyLayout));
+			java.lang.reflect.InvocationTargetException invalidSlot = assertThrows(java.lang.reflect.InvocationTargetException.class,
+					() -> loader.loadClass("com.example.MainLayout").getMethod("render", Map.class)
+							.invoke(emptyLayout, Map.of("unknown", (java.util.function.Supplier<String>) () -> "x")));
+			assertTrue(invalidSlot.getCause() instanceof IllegalArgumentException);
+		}
+	}
+
+	@Test
+	void compileRejectsPageInputsAndDuplicateInputNames() throws IOException {
+		Path page = writeTemplate("PageInputs.clever", "@Page Page\n@Inputs(String name)\n@Code {}\n@Template {}\n");
+		Path duplicate = writeTemplate("DuplicateInputs.clever",
+				"@Component Duplicate\n@Inputs(String name, int name)\n@Code {}\n@Template {}\n");
+
+		assertTrue(assertThrows(IllegalArgumentException.class, () -> compiler.compile(page, "com.example"))
+				.getMessage().contains("@Inputs can only be declared by a component or layout"));
+		assertTrue(assertThrows(IllegalArgumentException.class, () -> compiler.compile(duplicate, "com.example"))
+				.getMessage().contains("duplicate input name 'name'"));
+	}
+
+	@Test
+	void compileRejectsDuplicateLayoutSlotAssignments() throws IOException {
+		Path template = writeTemplate("DuplicateSlots.clever", """
+				@Page DuplicateSlots
+				@Code {}
+				@Template { @Layout(MainLayout.class) { @Slot("content") { first } @Slot("content") { second } } }
+				""");
+
+		assertTrue(assertThrows(IllegalArgumentException.class, () -> compiler.compile(template, "com.example"))
+				.getMessage().contains("duplicate layout slot assignment 'content'"));
+	}
+
+	@Test
+	void compileRejectsComponentArityAndUnknownLayoutSlots() throws IOException {
+		writeTemplate("Card.clever", "@Component Card\n@Inputs(String name)\n@Code {}\n@Template {}\n");
+		writeTemplate("MainLayout.clever", "@Layout MainLayout\n@Code {}\n@Template {@Slot(\"content\")}\n");
+		Path wrongArity = writeTemplate("WrongArity.clever",
+				"@Page WrongArity\n@Code { import com.example.Card; }\n@Template {@Component(Card.class)}\n");
+		Path unknownSlot = writeTemplate("UnknownSlot.clever", """
+				@Page UnknownSlot
+				@Code { import com.example.MainLayout; }
+				@Template {@Layout(MainLayout.class){@Slot("sidebar"){side}}}
+				""");
+
+		assertTrue(assertThrows(IllegalArgumentException.class, () -> compiler.compile(wrongArity, "com.example"))
+				.getMessage().contains("component 'Card' expects 1 input(s) but received 0"));
+		assertTrue(assertThrows(IllegalArgumentException.class, () -> compiler.compile(unknownSlot, "com.example"))
+				.getMessage().contains("layout 'MainLayout' does not declare slot 'sidebar'"));
+	}
+
+	@Test
+	void compileRejectsCollidingPublicComponentExports() throws IOException {
+		writeTemplate("First.clever", "@Component First\n@Code { public int count; }\n@Template {}\n");
+		writeTemplate("Second.clever", "@Component Second\n@Code { public int count; }\n@Template {}\n");
+		Path page = writeTemplate("Collision.clever", """
+				@Page Collision
+				@Code { import com.example.First; import com.example.Second; }
+				@Template {@Component(First.class)@Component(Second.class)}
+				""");
+
+		assertTrue(assertThrows(IllegalArgumentException.class, () -> compiler.compile(page, "com.example"))
+				.getMessage().contains("ambiguous component export 'count'"));
+	}
+
+	@Test
+	void compileDoesNotExposePrivateComponentFields() throws IOException {
+		writeTemplate("PrivateCard.clever", "@Component PrivateCard\n@Code { private String secret = \"hidden\"; }\n@Template {}\n");
+		Path page = writeTemplate("PrivateParent.clever", """
+				@Page PrivateParent
+				@Code { import com.example.PrivateCard; }
+				@Template {@Component(PrivateCard.class)@(secret)}
+				""");
+
+		String generated = compiler.compile(page, "com.example");
+
+		assertTrue(generated.contains("HtmlTagGenerator.appendText(root, secret)"));
+		assertFalse(generated.contains("component0.secret"));
+	}
 
 	@Test
 	void compileAddsLombokConstructorAnnotation() throws IOException {
@@ -111,7 +244,7 @@ class CleverCompilerTests {
 
 	@Test
 	void compileRejectsInvalidJavaClassAndPackageNames() throws IOException {
-		Path invalidClass = writeTemplate("Invalid.clever", "@Page class\n@Code {}\n@Template {}\n");
+		Path invalidClass = writeTemplate("Invalid.clever", "@Page interface\n@Code {}\n@Template {}\n");
 		Path validClass = writeTemplate("Valid.clever", "@Page Valid\n@Code {}\n@Template {}\n");
 
 		assertTrue(assertThrows(IllegalArgumentException.class,
@@ -196,5 +329,12 @@ class CleverCompilerTests {
 		Path template = tempDir.resolve(name);
 		Files.writeString(template, source);
 		return template;
+	}
+
+	private Path writeGenerated(String packageName, String className, String source, Path root) throws IOException {
+		Path path = root.resolve(packageName.replace('.', '/')).resolve(className + ".java");
+		Files.createDirectories(path.getParent());
+		Files.writeString(path, source);
+		return path;
 	}
 }

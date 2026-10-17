@@ -1,14 +1,14 @@
 ## 1. Finalize language contract
 
 - [ ] 1.1 Resolve the open syntax decisions in `design.md` and update `template-language` requirements.
-- [ ] 1.2 Specify component export collisions, conditional invocation behavior, and slot fallback rules.
+- [x] 1.2 Specify component export collisions, conditional invocation behavior, and slot fallback rules.
 - [ ] 1.3 Specify construction, dependency injection, page routing, action security, and state lifecycle.
 
 ## 2. Build the compiler foundation
 
 - [x] 2.1 Add the initial ANTLR grammar for `.clever` declarations and primary blocks.
 - [x] 2.2 Implement source diagnostics that retain original file and location information.
-- [ ] 2.3 Build semantic validation for template types and typed `@Inputs(...)` declarations.
+- [x] 2.3 Build semantic validation for template types and typed `@Inputs(...)` declarations.
 - [x] 2.4 Generate Java classes and connect generated sources to Gradle compilation.
 
 ## 3. Implement template rendering and composition
@@ -17,9 +17,9 @@
 - [x] 3.2 Escape dynamic text by default and verify escaping behavior.
 - [x] 3.7 Add a named-input facade for rendering compiled template classes.
 - [ ] 3.3 Add conditionals and iteration after their grammar is finalized.
-- [ ] 3.4 Add typed component invocation and argument validation.
-- [ ] 3.5 Add layouts, named slots, nested composition, and slot validation.
-- [ ] 3.6 Add immediate-parent public field exports and enforce private-field isolation.
+- [x] 3.4 Add typed component invocation and argument validation.
+- [x] 3.5 Add layouts, named slots, nested composition, and slot validation.
+- [x] 3.6 Add immediate-parent public field exports and enforce private-field isolation.
 
 ## 4. Integrate with Spring Boot
 

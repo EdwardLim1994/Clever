@@ -34,8 +34,8 @@ class BlockBuilderTests {
 
 		TemplateBlock template = new TemplateBlockBuilder().build(source, body, "Example.clever");
 
-		assertTrue(template.body().html().contains("<p>Hello CLEVEREXPRESSION0END</p>"));
-		assertEquals("name", template.expressions().get("CLEVEREXPRESSION0END").source());
+		assertTrue(template.body().html().contains("<p>Hello CLEVERDIRECTIVE0END</p>"));
+		assertEquals("name", template.expressions().get("CLEVERDIRECTIVE0END").source());
 	}
 
 	@Test
